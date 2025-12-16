@@ -65,3 +65,6 @@ Route::get('/produk/{id}', function ($id) {
 // ↑ route() = Helper function untuk generate URL dari nama route
 // ↑ ['id' => 1] = Parameter yang dikirim ke route
 // ↑ Hasilnya: <a href="/produk/1">Lihat Produk</a>
+Auth::routes();
+
+Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
