@@ -1,91 +1,61 @@
 <?php
 
+use App\Http\Controllers\Admin\AdminController;
+use App\Http\Controllers\Admin\ProductController;
+use App\Http\Controllers\Auth\GoogleController;
+use App\Http\Controllers\CartController;
+use App\Http\Controllers\CatalogController;
+use App\Http\Controllers\CheckoutController;
+use App\Http\Controllers\HomeController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\WishlistController;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Auth;
-use App\Http\Controllers\ProductController;
-use App\Http\Controllers\GoogleController;
 
-Route::get('/', function () {
-    return view('welcome');
-});
+// Homepage
+Route::get('/', [HomeController::class, 'index'])->name('home');
 
-Route::get('/Tentang', function () {
-    return view('Tentang');
-});
+// Katalog Produk
+Route::get('/products', [CatalogController::class, 'index'])->name('catalog.index');
+Route::get('/products/{slug}', [CatalogController::class, 'show'])->name('catalog.show');
 
-// ================================================
-// ROUTE DENGAN PARAMETER DINAMIS
-// ================================================
-// {nama} adalah parameter yang akan diisi dari URL
-// ================================================
-
-Route::get('/sapa/{nama}', function ($nama) {
-    // ↑ '/sapa/{nama}' = URL pattern
-    // ↑ {nama}         = Parameter dinamis, nilainya dari URL
-    // ↑ function($nama) = Parameter diterima di function
-
-    return "Halo, $nama! Selamat datang di Toko Online.";
-    // ↑ "$nama" = Variable interpolation (masukkan nilai $nama ke string)
-});
-
-// CARA AKSES:
-// http://localhost:8000/sapa/Budi
-// Output: "Halo, Budi! Selamat datang di Toko Online."
-
-// http://localhost:8000/sapa/Ani
-// Output: "Halo, Ani! Selamat datang di Toko Online."
-
-// ================================================
-// PARAMETER OPSIONAL DENGAN NILAI DEFAULT
-// ================================================
-
-Route::get('/kategori/{nama?}', function ($nama = 'Semua') {
-    // ↑ {nama?} = Tanda ? berarti parameter OPSIONAL
-    // ↑ $nama = 'Semua' = Nilai default jika parameter tidak diberikan
-
-    return "Menampilkan kategori: $nama";
-});
-
-// CARA AKSES:
-// http://localhost:8000/kategori
-// Output: "Menampilkan kategori: Semua" (menggunakan default)
-
-// http://localhost:8000/kategori/Elektronik
-// Output: "Menampilkan kategori: Elektronik"
-
-// ================================================
-// ROUTE DENGAN NAMA (NAMED ROUTE)
-// ================================================
-
-Route::get('/produk/{id}', function ($id) {
-    return "Detail produk #$id";
-})->name('produk.detail');
-// ↑ ->name('produk.detail') = Memberi nama pada route
-// ↑ Nama ini bisa digunakan untuk generate URL di view
-
-// KEGUNAAN DI VIEW (Blade):
-// <a href="{{ route('produk.detail', ['id' => 1]) }}">Lihat Produk</a>
-// ↑ route() = Helper function untuk generate URL dari nama route
-// ↑ ['id' => 1] = Parameter yang dikirim ke route
-// ↑ Hasilnya: <a href="/produk/1">Lihat Produk</a>
 Auth::routes();
 
-
+Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 
 Route::middleware('auth')->group(function () {
+
+    Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
+    Route::post('/cart/add', [CartController::class, 'add'])->name('cart.add');
+    Route::patch('/cart/{item}', [CartController::class, 'update'])->name('cart.update');
+    Route::delete('/cart/{item}', [CartController::class, 'remove'])->name('cart.remove');
+
+    // Wishlist
+    Route::get('/wishlist', [WishlistController::class, 'index'])->name('wishlist.index');
+    Route::post('/wishlist/toggle/{product}', [WishlistController::class, 'toggle'])->name('wishlist.toggle');
+
+    // Checkout
+    Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.index');
+    Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
+
+    // Pesanan Saya
+    Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
+    Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
+
     // Semua route di dalam group ini HARUS LOGIN
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::delete('/profile/avatar', [ProfileController::class, 'deleteAvatar'])->name('profile.avatar.destroy');
 
-    Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])
-        ->name('home');
-    // ↑ ->name('home') = Memberi nama route
-    // Kegunaan: route('home') akan menghasilkan URL /home
-
-    Route::get('/profile', [ProfileController::class, 'edit'])
-        ->name('profile.edit');
-
-    Route::put('/profile', [ProfileController::class, 'update'])
-        ->name('profile.update');
 });
+
+// ================================================
+// ROUTE KHUSUS ADMIN
+// ================================================
+// middleware(['auth', 'admin']) = Harus login DAN harus admin
+// prefix('admin')               = Semua URL diawali /admin
+// name('admin.')                = Semua nama route diawali admin.
+// ================================================
 
 Route::middleware(['auth', 'admin'])
     ->prefix('admin')
@@ -99,16 +69,29 @@ Route::middleware(['auth', 'admin'])
         // ↑ URL: /admin/dashboard
 
         // CRUD Produk: /admin/products, /admin/products/create, dll
-        Route::resource('/products', AdminProductController::class);
-        // ↑ resource() membuat 7 route sekaligus:
-        // - GET    /admin/products          → index   (admin.products.index)
-        // - GET    /admin/products/create   → create  (admin.products.create)
-        // - POST   /admin/products          → store   (admin.products.store)
-        // - GET    /admin/products/{id}     → show    (admin.products.show)
-        // - GET    /admin/products/{id}/edit→ edit    (admin.products.edit)
-        // - PUT    /admin/products/{id}     → update  (admin.products.update)
-        // - DELETE /admin/products/{id}     → destroy (admin.products.destroy)
-});
+        Route::resource('/products', ProductController::class);
+        // Produk CRUD
+        Route::resource('products', AdminProductController::class);
+
+        // Kategori CRUD
+        Route::resource('categories', AdminCategoryController::class);
+
+        // Manajemen Pesanan
+        Route::get('/orders', [AdminOrderController::class, 'index'])->name('orders.index');
+        Route::get('/orders/{order}', [AdminOrderController::class, 'show'])->name('orders.show');
+        Route::patch('/orders/{order}/status', [AdminOrderController::class, 'updateStatus'])->name('orders.updateStatus');
+
+    });
+
+// ========================================
+// FILE: routes/web.php (tambahan untuk Google OAuth)
+// ========================================
+
+// ================================================
+// GOOGLE OAUTH ROUTES
+// ================================================
+// Route ini diakses oleh browser, tidak perlu middleware auth
+// ================================================
 
 Route::controller(GoogleController::class)->group(function () {
     // ================================================
@@ -130,5 +113,3 @@ Route::controller(GoogleController::class)->group(function () {
     Route::get('/auth/google/callback', 'callback')
         ->name('auth.google.callback');
 });
-
-Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
