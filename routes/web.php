@@ -1,7 +1,8 @@
 <?php
 
-use App\Http\Controllers\Admin\AdminController;
+use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\ProductController;
+use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Auth\GoogleController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CatalogController;
@@ -63,7 +64,7 @@ Route::middleware(['auth', 'admin'])
     ->group(function () {
 
         // /admin/dashboard
-        Route::get('/dashboard', [AdminController::class, 'dashboard'])
+        Route::get('/dashboard', [DashboardController::class, 'dashboard'])
             ->name('dashboard');
         // ↑ Nama lengkap route: admin.dashboard
         // ↑ URL: /admin/dashboard
@@ -71,10 +72,10 @@ Route::middleware(['auth', 'admin'])
         // CRUD Produk: /admin/products, /admin/products/create, dll
         Route::resource('/products', ProductController::class);
         // Produk CRUD
-        Route::resource('products', AdminProductController::class);
+        Route::resource('products', ProductController::class);
 
         // Kategori CRUD
-        Route::resource('categories', AdminCategoryController::class);
+        Route::resource('categories',CategoryController::class)->except('show');
 
         // Manajemen Pesanan
         Route::get('/orders', [AdminOrderController::class, 'index'])->name('orders.index');
@@ -113,3 +114,6 @@ Route::controller(GoogleController::class)->group(function () {
     Route::get('/auth/google/callback', 'callback')
         ->name('auth.google.callback');
 });
+Auth::routes();
+
+Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');

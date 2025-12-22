@@ -1,14 +1,9 @@
-import './bootstrap';
-// ================================================
-// FILE: resources/js/app.js
-// FUNGSI: Entry point untuk semua JavaScript
-// ================================================
-
-// Import Bootstrap JS (untuk dropdown, modal, dll)
 import * as bootstrap from "bootstrap";
 
-// Simpan ke window agar bisa diakses global
+
 window.bootstrap = bootstrap;
+
+
 
 // ================================================
 // CUSTOM JAVASCRIPT
