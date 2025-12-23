@@ -24,6 +24,7 @@ class CatalogController extends Controller
         // ================================================
         $query = Product::query()
             ->with(['category', 'primaryImage']) // Eager load relasi
+            ->available()
             ->active()
             ->inStock();
 
