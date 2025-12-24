@@ -15,7 +15,7 @@ return new class extends Migration
                   ->constrained()
                   ->cascadeOnDelete();
 
-            $table->string('order_number', 50)->unique();
+            $table->string('order_number')->unique();
 
             $table->decimal('total_amount', 15, 2);
 
@@ -28,6 +28,8 @@ return new class extends Migration
                 'delivered',   
                 'cancelled'    
             ])->default('pending');
+
+            $table->enum('payment_status', ['unpaid', 'paid', 'failed'])->default('unpaid');
 
             $table->string('shipping_name');
             $table->string('shipping_phone', 20);
@@ -42,6 +44,8 @@ return new class extends Migration
             $table->index('order_number');
             $table->index('status');
             $table->index('created_at');
+
+            $table->string('snap_token')->nullable();
         });
     }
 
