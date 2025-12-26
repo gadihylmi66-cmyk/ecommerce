@@ -11,6 +11,8 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\WishlistController;
 use Illuminate\Support\Facades\Route;
+use App\Services\MidtransService;
+use App\Http\Controllers\PaymentController;
 
 // Homepage
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -48,6 +50,13 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     Route::delete('/profile/avatar', [ProfileController::class, 'deleteAvatar'])->name('profile.avatar.destroy');
+
+     Route::get('/orders/{order}/pay', [PaymentController::class, 'show'])
+        ->name('orders.pay');
+    Route::get('/orders/{order}/success', [PaymentController::class, 'success'])
+        ->name('orders.success');
+    Route::get('/orders/{order}/pending', [PaymentController::class, 'pending'])
+        ->name('orders.pending');
 
 });
 
@@ -115,6 +124,64 @@ Route::controller(GoogleController::class)->group(function () {
     Route::get('/auth/google/callback', 'callback')
         ->name('auth.google.callback');
 });
+
+// routes/web.php (HAPUS SETELAH TESTING!)
+
+Route::get('/debug-midtrans', function () {
+    // Cek apakah config terbaca
+    $config = [
+        'merchant_id'   => config('midtrans.merchant_id'),
+        'client_key'    => config('midtrans.client_key'),
+        'server_key'    => config('midtrans.server_key') ? '***SET***' : 'NOT SET',
+        'is_production' => config('midtrans.is_production'),
+    ];
+
+    // Test buat dummy token
+    try {
+        $service = new MidtransService();
+
+        // Buat dummy order untuk testing
+        $dummyOrder                   = new \App\Models\Order();
+        $dummyOrder->order_number     = 'TEST-' . time();
+        $dummyOrder->total_amount     = 10000;
+        $dummyOrder->shipping_cost    = 0;
+        $dummyOrder->shipping_name    = 'Test User';
+        $dummyOrder->shipping_phone   = '08123456789';
+        $dummyOrder->shipping_address = 'Jl. Test No. 123';
+        $dummyOrder->user             = (object) [
+            'name'  => 'Tester',
+            'email' => 'test@example.com',
+            'phone' => '08123456789',
+        ];
+        // Dummy items
+        $dummyOrder->items = collect([
+            (object) [
+                'product_id'   => 1,
+                'product_name' => 'Produk Test',
+                'price'        => 10000,
+                'quantity'     => 1,
+            ],
+        ]);
+
+        $token = $service->createSnapToken($dummyOrder);
+
+        return response()->json([
+            'status'  => 'SUCCESS',
+            'message' => 'Berhasil terhubung ke Midtrans!',
+            'config'  => $config,
+            'token'   => $token,
+        ]);
+
+    } catch (\Exception $e) {
+        return response()->json([
+            'status'  => 'ERROR',
+            'message' => $e->getMessage(),
+            'config'  => $config,
+        ], 500);
+    }
+});
+
+
 Auth::routes();
 
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
