@@ -1,135 +1,143 @@
-{{-- ======================================== FILE:
-resources/views/layouts/app.blade.php FUNGSI: Template utama yang digunakan
-semua halaman ======================================== --}}
+{{-- ========================================
+FILE: resources/views/layouts/app.blade.php
+FUNGSI: Template utama yang digunakan semua halaman
+======================================== --}}
 
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-  {{-- ↑ str_replace mengganti underscore dengan dash Contoh: en_US menjadi
-  en-US --}}
+{{-- ↑ Contoh: en_US → en-US --}}
 
-  <head>
-    <meta charset="utf-8" />
-    {{-- ↑ Encoding karakter UTF-8 untuk mendukung karakter Indonesia --}}
+<head>
+    <meta charset="utf-8">
+    {{-- ↑ Encoding UTF-8 --}}
 
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    {{-- ↑ Membuat halaman responsive di semua ukuran layar --}}
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    {{-- ↑ Responsive layout --}}
 
-    <meta name="csrf-token" content="{{ csrf_token() }}" />
-    {{-- ↑ CSRF Token untuk keamanan form Mencegah serangan Cross-Site Request
-    Forgery --}}
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    {{-- ↑ CSRF Token untuk keamanan request POST --}}
 
-    <title>{{ config('app.name', 'Toko Online') }}</title>
-    {{-- ↑ Mengambil nama aplikasi dari config/app.php Jika tidak ada, gunakan
-    default 'Toko Online' --}}
+    <title>@yield('title', config('app.name', 'Toko Online'))</title>
+
     <link rel="icon" href="{{ asset('favicon.ico') }}">
-    <!-- Fonts -->
-    <link rel="dns-prefetch" href="//fonts.bunny.net" />
-    <link href="https://fonts.bunny.net/css?family=Nunito" rel="stylesheet" />
-    {{-- ↑ Load font Nunito dari Bunny Fonts (alternatif Google Fonts) --}}
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Scripts & Styles -->
-    @vite(['resources/sass/app.scss', 'resources/js/app.js']) {{-- ↑ Load file
-    CSS dan JS yang sudah di-compile oleh Vite - app.scss berisi Bootstrap dan
-    custom styles - app.js berisi Bootstrap JS dan custom scripts --}}
-      @stack('styles')
-  </head>
 
-  <body>
-    {{-- ============================================
-         NAVBAR
-         ============================================ --}}
+    {{-- ================= FONT ================= --}}
+    <link rel="dns-prefetch" href="//fonts.bunny.net">
+    <link href="https://fonts.bunny.net/css?family=Nunito" rel="stylesheet">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+
+    {{-- ================= BOOTSTRAP ICONS (WAJIB) ================= --}}
+    <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+
+    {{-- ================= VITE ASSETS ================= --}}
+    @vite(['resources/sass/app.scss', 'resources/js/app.js'])
+
+    {{-- Stack CSS tambahan --}}
+    @stack('styles')
+
+    {{-- ================= GLOBAL STYLE ================= --}}
+    <style>
+        body {
+            font-family: 'Inter', 'Nunito', system-ui, sans-serif;
+            background-color: #f8fafc;
+        }
+
+        main {
+            min-height: 100vh;
+        }
+    </style>
+</head>
+
+<body>
+
+    {{-- ================= NAVBAR ================= --}}
     @include('partials.navbar')
 
-    {{-- ============================================
-         FLASH MESSAGES
-         ============================================ --}}
+    {{-- ================= FLASH MESSAGE ================= --}}
     <div class="container mt-3">
         @include('partials.flash-messages')
     </div>
 
-    {{-- ============================================
-         MAIN CONTENT
-         ============================================ --}}
-    <main class="min-vh-100">
+    {{-- ================= MAIN CONTENT ================= --}}
+    <main>
         @yield('content')
     </main>
 
-    {{-- ============================================
-         FOOTER
-         ============================================ --}}
+    {{-- ================= FOOTER ================= --}}
     @include('partials.footer')
+
+    {{-- =====================================================
+         WISHLIST AJAX SCRIPT (Modern Fetch API)
+         ===================================================== --}}
     <script>
-  /**
-   * Fungsi AJAX untuk Toggle Wishlist
-   * Menggunakan Fetch API (Modern JS) daripada jQuery.
-   */
-  async function toggleWishlist(productId) {
-    try {
-      // 1. Ambil CSRF token dari meta tag HTML
-      // Laravale mewajibkan token ini untuk setiap request POST demi keamanan.
-      const token = document.querySelector('meta[name="csrf-token"]').content;
+        /**
+         * Toggle Wishlist menggunakan Fetch API
+         */
+        async function toggleWishlist(productId) {
+            try {
+                const token = document
+                    .querySelector('meta[name="csrf-token"]')
+                    .getAttribute('content');
 
-      // 2. Kirim Request ke Server
-      const response = await fetch(`/wishlist/toggle/${productId}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-CSRF-TOKEN": token, // Tempel token di header
-        },
-      });
+                const response = await fetch(`/wishlist/toggle/${productId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': token
+                    }
+                });
 
-      // 3. Handle jika user belum login (Error 401 Unauthorized)
-      if (response.status === 401) {
-        window.location.href = "/login"; // Lempar ke halaman login
-        return;
-      }
+                if (response.status === 401) {
+                    window.location.href = '/login';
+                    return;
+                }
 
-      // 4. Baca respon JSON dari server
-      const data = await response.json();
+                const data = await response.json();
 
-      if (data.status === "success") {
-        // 5. Update UI tanpa reload halaman
-        updateWishlistUI(productId, data.added); // Ganti warna ikon
-        updateWishlistCounter(data.count); // Update angka di header
-        showToast(data.message); // Tampilkan notifikasi
-      }
-    } catch (error) {
-      console.error("Error:", error);
-      showToast("Terjadi kesalahan sistem.", "error");
-    }
-  }
+                if (data.status === 'success') {
+                    updateWishlistUI(productId, data.added);
+                    updateWishlistCounter(data.count);
+                    showToast(data.message);
+                }
+            } catch (error) {
+                console.error(error);
+                showToast('Terjadi kesalahan sistem', 'error');
+            }
+        }
 
-  function updateWishlistUI(productId, isAdded) {
-    // Cari semua tombol wishlist untuk produk ini (bisa ada di card & detail page)
-    const buttons = document.querySelectorAll(`.wishlist-btn-${productId}`);
+        function updateWishlistUI(productId, isAdded) {
+            document
+                .querySelectorAll(`.wishlist-btn-${productId}`)
+                .forEach(btn => {
+                    const icon = btn.querySelector('i');
 
-    buttons.forEach((btn) => {
-      const icon = btn.querySelector("i"); // Menggunakan tag <i> untuk Bootstrap Icons
-      if (isAdded) {
-        // Ubah jadi merah solid (Love penuh)
-        icon.classList.remove("bi-heart", "text-secondary");
-        icon.classList.add("bi-heart-fill", "text-danger");
-      } else {
-        // Ubah jadi abu-abu outline (Love kosong)
-        icon.classList.remove("bi-heart-fill", "text-danger");
-        icon.classList.add("bi-heart", "text-secondary");
-      }
-    });
-  }
+                    if (isAdded) {
+                        icon.classList.remove('bi-heart', 'text-secondary');
+                        icon.classList.add('bi-heart-fill', 'text-danger');
+                    } else {
+                        icon.classList.remove('bi-heart-fill', 'text-danger');
+                        icon.classList.add('bi-heart', 'text-secondary');
+                    }
+                });
+        }
 
-  function updateWishlistCounter(count) {
-    const badge = document.getElementById("wishlist-count");
-    if (badge) {
-      badge.innerText = count;
-      // Bootstrap badge display toggle logic
-      badge.style.display = count > 0 ? "inline-block" : "none";
-    }
-  }
-</script>
+        function updateWishlistCounter(count) {
+            const badge = document.getElementById('wishlist-count');
+            if (badge) {
+                badge.textContent = count;
+                badge.style.display = count > 0 ? 'inline-block' : 'none';
+            }
+        }
+    </script>
 
-    {{-- Stack untuk JS tambahan per halaman --}}
+    {{-- Stack JS tambahan --}}
     @stack('scripts')
-  </body>
+
+</body>
 </html>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">

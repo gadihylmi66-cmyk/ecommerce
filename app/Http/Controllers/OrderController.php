@@ -25,6 +25,10 @@ class OrderController extends Controller
 
         return view('orders.index', compact('orders'));
     }
+    public function success(Order $order)
+    {
+        return view('orders.success' , compact('order')); ;
+    }
 
     /**
      * Menampilkan detail satu pesanan.
@@ -80,10 +84,11 @@ class OrderController extends Controller
             \Log::error('Midtrans Error: ' . $e->getMessage());
         }
     }
+    
         // 2. Load relasi detail
         // Kita butuh data items dan gambar produknya untuk ditampilkan di invoice view.
         $order->load(['items.product', 'items.product.primaryImage']);  
-
+        
         return view('orders.show', compact('order', 'snapToken'));
     }
 }

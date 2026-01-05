@@ -38,4 +38,50 @@
     <a href="/">← Kembali ke Home</a>
     {{-- ↑ Link biasa ke halaman utama --}}
   </body>
+
+<div class="col-lg-8">
+    <div class="glass-card">
+        <div class="p-4 d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Pesanan Terbaru</h5>
+            <a href="{{ route('admin.orders.index') }}" class="btn btn-sm btn-outline-info">
+                Lihat Semua
+            </a>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-borderless mb-0 align-middle">
+                <thead class="text-muted small">
+                    <tr>
+                        <th>Order</th>
+                        <th>Customer</th>
+                        <th>Total</th>
+                        <th>Status</th>
+                        <th>Tanggal</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($recentOrders as $order)
+                        <tr>
+                            <td>
+                                <strong>#{{ $order->order_number }}</strong>
+                            </td>
+                            <td>{{ $order->user->name }}</td>
+                            <td>Rp {{ number_format($order->total_amount, 0, ',', '.') }}</td>
+                            <td>
+                                <span class="badge rounded-pill bg-{{ $order->status_color }}">
+                                    {{ ucfirst($order->status) }}
+                                </span>
+                            </td>
+                            <td class="text-muted">
+                                {{ $order->created_at->diffForHumans() }}
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+
 </html>

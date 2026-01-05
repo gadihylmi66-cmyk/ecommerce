@@ -25,6 +25,7 @@ use App\Http\Controllers\MidtransNotificationController;
 // ================================================
 
 // Homepage
+Route::get('/home', [HomeController::class, 'index'])->name('home');
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
 // Katalog Produk
