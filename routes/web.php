@@ -63,6 +63,7 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     Route::delete('/profile/avatar', [ProfileController::class, 'deleteAvatar'])->name('profile.avatar.destroy');
+    Route::post('/profile/avatar', [ProfileController::class, 'updateAvatar'])->name('profile.avatar');
     Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password.update');
 
 });
@@ -133,4 +134,17 @@ Route::controller(GoogleController::class)->group(function () {
 
 
 Route::post('midtrans/notification', [MidtransNotificationController::class, 'handle'])
-    ->name('midtrans.notification');
+    ->name('midtrans.notification');    
+
+   use Illuminate\Support\Facades\Mail;
+// use Illuminate\Support\Facades\Route;
+
+Route::get('/test-mailtrap', function () {
+    Mail::raw('Email test dari Laravel + Mailtrap', function ($message) {
+        $message->to('test@example.com')
+                ->subject('Test Mailtrap Laravel');
+    });
+
+    return 'Email berhasil dikirim (cek Mailtrap inbox)';
+});
+

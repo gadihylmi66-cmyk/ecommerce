@@ -78,16 +78,5 @@ FUNGSI: Footer website
         </div>
 
         <hr class="my-4 border-secondary">
-
-        <div class="row align-items-center">
-            <div class="col-md-6 text-center text-md-start">
-                <p class="text-secondary mb-0 small">
-                    &copy; {{ date('Y') }} TokoOnline. All rights reserved.
-                </p>
-            </div>
-            <div class="col-md-6 text-center text-md-end mt-3 mt-md-0">
-                <img src="{{ asset('images/payment-methods.png') }}" alt="Payment Methods" height="30">
-            </div>
-        </div>
     </div>
 </footer>

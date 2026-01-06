@@ -312,7 +312,7 @@
                         <div>
                             <p class="text-muted text-uppercase fw-semibold mb-1" style="font-size: 0.8rem">Total Pendapatan</p>
                             <h4 class="fw-bold mb-0 text-success">
-                                Rp {{ number_format($stats['total_revenue'], 0, ',', '.') }}
+                                 Rp {{ number_format($summary->total_revenue ?? 0, 0, ',', '.') }}
                             </h4>
                         </div>
                         <div class="bg-success bg-opacity-10 p-3 rounded">

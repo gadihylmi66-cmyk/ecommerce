@@ -5,9 +5,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Order;
 use App\Models\Payment;
-use App\Events\OrderPaidEvent;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use App\Events\OrderPaidEvent;
 
 class MidtransNotificationController extends Controller
 {
@@ -20,13 +20,6 @@ class MidtransNotificationController extends Controller
      * URL: POST /midtrans/notification
      * Access: Public (Midtrans Server)
      */
-    private function setSuccess(Order $order)
-    {
-        $order->update([...]);
-    
-        // Fire & Forget
-        event(new OrderPaidEvent($order));
-    }
     public function handle(Request $request)
     {
         // 1. Ambil data notifikasi
@@ -187,8 +180,8 @@ class MidtransNotificationController extends Controller
             ]);
         }
 
-        // TODO: Kirim email konfirmasi pembayaran
-        // event(new PaymentSuccessful($order));
+        // Trigger event untuk kirim email konfirmasi pembayaran
+        event(new OrderPaidEvent($order));
     }
 
     /**

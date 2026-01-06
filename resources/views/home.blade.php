@@ -100,7 +100,7 @@ FUNGSI: Halaman utama website
                 </a>
             </div>
             <div class="col-lg-6 d-none d-lg-block text-center">
-                <img src="{{ asset('images/id-11134207-81ztn-mfjihwayxnnu41.webp') }}" class="img-fluid" style="max-height:420px;">
+                <img src="{{ asset('images/cable_tester-removebg-preview.png') }}" class="img-fluid" style="max-height:420px;">
             </div>
         </div>
     </div>
